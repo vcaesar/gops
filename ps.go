@@ -12,8 +12,9 @@
 package ps
 
 import (
+	"os"
 	"strings"
-	
+
 	"github.com/shirou/gopsutil/process"
 )
 
@@ -21,6 +22,11 @@ import (
 type Nps struct {
 	Pid  int32
 	Name string
+}
+
+// GetPid get the process id
+func GetPid() int32 {
+	return int32(os.Getpid())
 }
 
 // Pids get the all process id
@@ -149,4 +155,10 @@ func FindPath(pid int32) (string, error) {
 	}
 
 	return f, err
+}
+
+// Kill kill the process by PID
+func Kill(pid int32) error {
+	p := os.Process{Pid: int(pid)}
+	return p.Kill()
 }
