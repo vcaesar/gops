@@ -31,26 +31,17 @@ func GetPid() int32 {
 
 // Pids get the all process id
 func Pids() ([]int32, error) {
-	var ret []int32
-	pid, err := process.Pids()
-	if err != nil {
-		return ret, err
-	}
-
-	return pid, err
+	return process.Pids()
 }
 
 // PidExists determine whether the process exists
 func PidExists(pid int32) (bool, error) {
-	abool, err := process.PidExists(pid)
-
-	return abool, err
+	return process.PidExists(pid)
 }
 
 // Process get the all process struct
 func Process() ([]Nps, error) {
 	var npsArr []Nps
-
 	pid, err := process.Pids()
 	if err != nil {
 		return npsArr, err
@@ -58,7 +49,6 @@ func Process() ([]Nps, error) {
 
 	for i := 0; i < len(pid); i++ {
 		nps, _ := process.NewProcess(pid[i])
-
 		names, err := nps.Name()
 		if err != nil {
 			return npsArr, err
@@ -82,12 +72,7 @@ func FindName(pid int32) (string, error) {
 		return "", err
 	}
 
-	names, err := nps.Name()
-	if err != nil {
-		return "", err
-	}
-
-	return names, err
+	return nps.Name()
 }
 
 // FindNames find the all process name
@@ -111,7 +96,6 @@ func FindNames() ([]string, error) {
 		}
 
 		strArr = append(strArr, names)
-		return strArr, err
 	}
 
 	return strArr, err
