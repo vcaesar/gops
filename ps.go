@@ -49,10 +49,7 @@ func Process() ([]Nps, error) {
 
 	for i := 0; i < len(pid); i++ {
 		nps, _ := process.NewProcess(pid[i])
-		names, err := nps.Name()
-		if err != nil {
-			return npsArr, err
-		}
+		names, _ := nps.Name()
 
 		np := Nps{
 			pid[i],
