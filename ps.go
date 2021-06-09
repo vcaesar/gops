@@ -82,15 +82,8 @@ func FindNames() ([]string, error) {
 	}
 
 	for i := 0; i < len(pid); i++ {
-		nps, err := process.NewProcess(pid[i])
-		if err != nil {
-			return strArr, err
-		}
-
-		names, err := nps.Name()
-		if err != nil {
-			return strArr, err
-		}
+		nps, _ := process.NewProcess(pid[i])
+		names, _ := nps.Name()
 
 		strArr = append(strArr, names)
 	}
