@@ -120,12 +120,27 @@ func FindPath(pid int32) (string, error) {
 		return "", err
 	}
 
-	f, err := nps.Exe()
+	return nps.Exe()
+}
+
+// IsRun return the process is runing or not
+func IsRun(pid int32) (bool, error) {
+	nps, err := process.NewProcess(pid)
+	if err != nil {
+		return false, err
+	}
+
+	return nps.IsRunning()
+}
+
+// Status return the process status
+func Status(pid int32) (string, error) {
+	nps, err := process.NewProcess(pid)
 	if err != nil {
 		return "", err
 	}
 
-	return f, err
+	return nps.Status()
 }
 
 // Kill kill the process by PID
