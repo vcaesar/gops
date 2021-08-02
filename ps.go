@@ -13,6 +13,8 @@ package ps
 
 import (
 	"os"
+	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/shirou/gopsutil/process"
@@ -121,6 +123,21 @@ func FindPath(pid int32) (string, error) {
 	}
 
 	return nps.Exe()
+}
+
+// Run command shell
+func Run(path string) ([]byte, error) {
+	cmdName := "/bin/bash"
+	params := "-c"
+	if runtime.GOOS == "windows" {
+		cmdName = "cmd"
+		params = "/c"
+	}
+
+	cmd := exec.Command(cmdName, params, path)
+	output, err := cmd.Output()
+
+	return output, err
 }
 
 // IsRun return the process is runing or not
