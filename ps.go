@@ -17,7 +17,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/shirou/gopsutil/process"
+	"github.com/shirou/gopsutil/v3/process"
 )
 
 // Nps process struct
@@ -151,10 +151,10 @@ func IsRun(pid int32) (bool, error) {
 }
 
 // Status return the process status
-func Status(pid int32) (string, error) {
+func Status(pid int32) ([]string, error) {
 	nps, err := process.NewProcess(pid)
 	if err != nil {
-		return "", err
+		return []string{}, err
 	}
 
 	return nps.Status()
