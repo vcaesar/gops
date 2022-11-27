@@ -22,23 +22,34 @@ import (
 
 // Nps process struct
 type Nps struct {
-	Pid  int32
+	// Pid  int32
+	Pid  int
 	Name string
 }
 
+// ToInt convert []int32 to []int
+func ToInt(pid []int32) (res []int) {
+	for _, v := range pid {
+		res = append(res, int(v))
+	}
+
+	return
+}
+
 // GetPid get the process id
-func GetPid() int32 {
-	return int32(os.Getpid())
+func GetPid() int {
+	return os.Getpid()
 }
 
 // Pids get the all process id
-func Pids() ([]int32, error) {
-	return process.Pids()
+func Pids() ([]int, error) {
+	ids, err := process.Pids()
+	return ToInt(ids), err
 }
 
 // PidExists determine whether the process exists
-func PidExists(pid int32) (bool, error) {
-	return process.PidExists(pid)
+func PidExists(pid int) (bool, error) {
+	return process.PidExists(int32(pid))
 }
 
 // Process get the all process struct
@@ -54,7 +65,7 @@ func Process() ([]Nps, error) {
 		names, _ := nps.Name()
 
 		np := Nps{
-			pid[i],
+			int(pid[i]),
 			names,
 		}
 
@@ -65,8 +76,8 @@ func Process() ([]Nps, error) {
 }
 
 // FindName find the process name by the process id
-func FindName(pid int32) (string, error) {
-	nps, err := process.NewProcess(pid)
+func FindName(pid int) (string, error) {
+	nps, err := process.NewProcess(int32(pid))
 	if err != nil {
 		return "", err
 	}
@@ -96,8 +107,8 @@ func FindNames() ([]string, error) {
 // FindIds finds the all processes named with a subset
 // of "name" (case insensitive),
 // return matched IDs.
-func FindIds(name string) ([]int32, error) {
-	var pids []int32
+func FindIds(name string) ([]int, error) {
+	var pids []int
 	nps, err := Process()
 	if err != nil {
 		return pids, err
@@ -116,8 +127,8 @@ func FindIds(name string) ([]int32, error) {
 }
 
 // FindPath find the process path by the process pid
-func FindPath(pid int32) (string, error) {
-	nps, err := process.NewProcess(pid)
+func FindPath(pid int) (string, error) {
+	nps, err := process.NewProcess(int32(pid))
 	if err != nil {
 		return "", err
 	}
@@ -141,8 +152,8 @@ func Run(path string) ([]byte, error) {
 }
 
 // IsRun return the process is runing or not
-func IsRun(pid int32) (bool, error) {
-	nps, err := process.NewProcess(pid)
+func IsRun(pid int) (bool, error) {
+	nps, err := process.NewProcess(int32(pid))
 	if err != nil {
 		return false, err
 	}
@@ -151,8 +162,8 @@ func IsRun(pid int32) (bool, error) {
 }
 
 // Status return the process status
-func Status(pid int32) ([]string, error) {
-	nps, err := process.NewProcess(pid)
+func Status(pid int) ([]string, error) {
+	nps, err := process.NewProcess(int32(pid))
 	if err != nil {
 		return []string{}, err
 	}
@@ -161,7 +172,7 @@ func Status(pid int32) ([]string, error) {
 }
 
 // Kill kill the process by PID
-func Kill(pid int32) error {
-	p := os.Process{Pid: int(pid)}
+func Kill(pid int) error {
+	p := os.Process{Pid: pid}
 	return p.Kill()
 }
