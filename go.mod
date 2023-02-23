@@ -2,7 +2,10 @@ module github.com/vcaesar/gops
 
 go 1.17
 
-require github.com/shirou/gopsutil/v3 v3.23.1
+require (
+	github.com/shirou/gopsutil/v3 v3.23.1
+	github.com/vcaesar/tt v0.20.0
+)
 
 require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
