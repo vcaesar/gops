@@ -104,6 +104,65 @@ func FindNames() ([]string, error) {
 	return strArr, err
 }
 
+// FindMainIds finds all main process PIDs by matching the executable path.
+// It looks for processes whose path contains "name" (case insensitive)
+// and are main binaries (.app/Contents/MacOS/), excluding helper processes.
+// Returns all matching main PIDs.
+func FindMainIds(name string) ([]int, error) {
+	pids, err := Pids()
+	if err != nil {
+		return nil, err
+	}
+
+	name = strings.ToLower(name)
+	var mainPids []int
+	var fallbackPids []int
+
+	for _, pid := range pids {
+		path, err := FindPath(pid)
+		if err != nil {
+			continue
+		}
+
+		pathLower := strings.ToLower(path)
+		if !strings.Contains(pathLower, name) {
+			continue
+		}
+
+		// Check if it's a main app binary (not a helper)
+		isMainBinary := strings.Contains(pathLower, ".app/contents/macos/") &&
+			!strings.Contains(pathLower, "helper")
+
+		if isMainBinary {
+			mainPids = append(mainPids, pid)
+		} else {
+			fallbackPids = append(fallbackPids, pid)
+		}
+	}
+
+	if len(mainPids) > 0 {
+		return mainPids, nil
+	}
+	return fallbackPids, nil
+}
+
+// FindId finds the main process by matching the executable path.
+// It looks for a process whose path contains "name" (case insensitive)
+// and prioritizes paths ending with .app/Contents/MacOS/ (main binary),
+// excluding helper processes.
+// Returns the PID or -1 if not found.
+func FindId(name string) (int, error) {
+	pids, err := FindMainIds(name)
+	if err != nil {
+		return -1, err
+	}
+
+	if len(pids) == 0 {
+		return -1, nil
+	}
+	return pids[0], nil
+}
+
 // FindIds finds the all processes named with a subset
 // of "name" (case insensitive),
 // return matched IDs.
