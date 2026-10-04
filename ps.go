@@ -106,8 +106,12 @@ func FindNames() ([]string, error) {
 
 // FindMainIds finds all main process PIDs by matching the executable path.
 // It looks for processes whose path contains "name" (case insensitive)
-// and are main binaries (.app/Contents/MacOS/), excluding helper processes.
-// Returns all matching main PIDs.
+// and are main binaries, excluding helper processes:
+//   - macOS: the binary is under .app/Contents/MacOS/
+//   - Windows, Linux and others: the parent process runs a different
+//     executable (children of multi-process apps share the parent's binary)
+//
+// Returns all matching main PIDs, or all matching PIDs if no main one is found.
 func FindMainIds(name string) ([]int, error) {
 	pids, err := Pids()
 	if err != nil {
@@ -129,11 +133,12 @@ func FindMainIds(name string) ([]int, error) {
 			continue
 		}
 
-		// Check if it's a main app binary (not a helper)
-		isMainBinary := strings.Contains(pathLower, ".app/contents/macos/") &&
-			!strings.Contains(pathLower, "helper")
+		parentPath := ""
+		if runtime.GOOS != "darwin" {
+			parentPath = findParentPath(pid)
+		}
 
-		if isMainBinary {
+		if isMainBinary(runtime.GOOS, path, parentPath) {
 			mainPids = append(mainPids, pid)
 		} else {
 			fallbackPids = append(fallbackPids, pid)
@@ -146,10 +151,47 @@ func FindMainIds(name string) ([]int, error) {
 	return fallbackPids, nil
 }
 
+// isMainBinary reports whether path is a main app binary (not a helper).
+// parentPath is the executable path of the parent process, used off macOS.
+func isMainBinary(goos, path, parentPath string) bool {
+	pathLower := strings.ToLower(path)
+	if strings.Contains(pathLower, "helper") {
+		return false
+	}
+
+	if goos == "darwin" {
+		return strings.Contains(pathLower, ".app/contents/macos/")
+	}
+
+	if goos == "windows" {
+		return !strings.EqualFold(path, parentPath)
+	}
+	return path != parentPath
+}
+
+// findParentPath returns the executable path of the parent process,
+// or "" if it cannot be determined.
+func findParentPath(pid int) string {
+	nps, err := process.NewProcess(int32(pid))
+	if err != nil {
+		return ""
+	}
+
+	ppid, err := nps.Ppid()
+	if err != nil {
+		return ""
+	}
+
+	path, err := FindPath(int(ppid))
+	if err != nil {
+		return ""
+	}
+	return path
+}
+
 // FindId finds the main process by matching the executable path.
 // It looks for a process whose path contains "name" (case insensitive)
-// and prioritizes paths ending with .app/Contents/MacOS/ (main binary),
-// excluding helper processes.
+// and prioritizes main binaries (see FindMainIds), excluding helper processes.
 // Returns the PID or -1 if not found.
 func FindId(name string) (int, error) {
 	pids, err := FindMainIds(name)
